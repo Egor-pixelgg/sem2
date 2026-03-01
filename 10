@@ -1,0 +1,158 @@
+Group.cpp
+
+
+#include "Group.hpp"
+#include <iostream>
+Group::Group(const std::string& groupName, const std::vector<Student*>& students) : groupName(groupName), students(students) {}
+void Group::addStudent(Student* student) {
+    students.push_back(student);
+}
+void Group::removeStudent(int bookNumber) {
+    int initialSize = students.size();
+    students.erase(std::remove_if(students.begin(), students.end(), [bookNumber](const Student* student){return student->getBookNumber() == bookNumber;}), students.end());
+    int eventualSize = students.size();
+    if (initialSize == eventualSize) std::cout << "Никого не удалили, видимо студента с такой зачеткой не существует" << std::endl;
+}
+double Group::groupMean() const {
+    int size = students.size();
+    if (size == 0) return 0;
+    double sum = 0;
+    for (const Student* student : students) sum += student->mean();
+    return sum / size;
+}
+
+
+Group.hpp
+
+
+#pragma once
+#include "Student.hpp"
+class Group {
+private:
+    std::string groupName;
+    std::vector<Student*> students;
+public:
+    Group(const std::string& groupName, const std::vector<Student*>& students);
+    void addStudent(Student* student);
+    void removeStudent(int bookNumber);
+    double groupMean() const;
+};
+
+
+
+Percon.ccp
+
+#include "Person.hpp"
+explicit Person::Person(const std::string& name) : name(name) {}
+Person::~Person() {}
+
+
+
+Person.hpp
+
+
+#pragma once
+#include <string>
+class Person {
+protected:
+    std::string name;
+public:
+    explicit Person(const std::string& name);
+    virtual ~Person();
+    virtual void print() const = 0;
+};
+
+
+RecordBook.cpp
+
+
+#include "RecordBook.hpp"
+RecordBook::RecordBook(int bookNumber) : bookNumber(bookNumber), grades({}) {}
+RecordBook::RecordBook(int bookNumber, const std::vector<double>& grades) : bookNumber(bookNumber), grades(grades) {}
+double RecordBook::mean() const {
+    int N = grades.size();
+    if (N == 0) return 0;
+    double sum = 0;
+    for (auto grade : grades) sum += grade;
+    return sum / N;
+}
+int RecordBook::getBookNumber() const {
+    return bookNumber;
+}
+std::vector<double> RecordBook::getGrades() const {
+    return grades;
+}
+void RecordBook::setGrades(const std::vector<double>& newGrades) {
+    grades = newGrades;
+} 
+
+
+
+RecordBook.hpp
+
+
+#pragma once
+#include <vector>
+class RecordBook {
+private:
+    int bookNumber;
+    std::vector<double> grades;
+public:
+    RecordBook(int bookNumber);
+    RecordBook(int bookNumber, const std::vector<double>& grades);
+    double mean() const;
+    int getBookNumber() const;
+    std::vector<double> getGrades() const;
+    void setGrades(const std::vector<double>& newGrades);
+};
+
+
+
+Student.cpp
+
+
+#include "Student.hpp"
+#include <iostream>
+Student::Student(const std::string& name, int bookNumber) : Person(name), recordBook(bookNumber) {}
+Student::Student(const std::string& name, int bookNumber, const std::vector<double>& grades) : Person(name), recordBook(bookNumber, grades) {}
+std::vector<double> Student::getGrades() const {
+    return recordBook.getGrades();
+}
+int Student::getBookNumber() const {
+    return recordBook.getBookNumber();
+}
+double Student::mean() const {
+    return recordBook.mean();
+}
+void Student::addGrade(double grade) {
+    std::vector<double> grades = getGrades();
+    grades.push_back(grade);
+    recordBook.setGrades(grades);
+}
+void Student::print() const {
+    std::cout << "У студента по имени " << name << " следующие оценки:";
+    for (double grade : recordBook.getGrades()) std::cout << " " << grade;
+    std::cout << std::endl;
+}
+
+
+
+Student.hpp
+
+
+
+#pragma once
+#include "Person.hpp"
+#include "RecordBook.hpp"
+class Student : public Person {
+private:
+    RecordBook recordBook;
+public:
+    Student(const std::string& name, int bookNumber);
+    Student(const std::string& name, int bookNumber, const std::vector<double>& grades);
+    double mean() const;
+    void addGrade(double grade);
+    void print() const override;
+    std::vector<double> getGrades() const;
+    int getBookNumber() const;
+};
