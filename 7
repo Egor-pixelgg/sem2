@@ -1,25 +1,36 @@
-Percon
+Percon.cpp
 
 #include "Person.hpp"
-
 Person::Person(const std::string& name)
     : name(name)
 {
 }
-
 Person::~Person()
 {
 }
-
 void Person::print() const
 {
     std::cout << "Имя: " << name << std::endl;
 }
 
 
+Percon.hpp
+
+#pragma once
+#include <string>
+#include <iostream>
+class Person
+{
+protected:
+    std::string name;
+public:
+    explicit Person(const std::string& name);
+    virtual ~Person() = default;
+    virtual void print() const;
+};
 
 
-Student
+Student.cpp
 
 
 #include "Student.hpp"
@@ -32,7 +43,6 @@ void Student::addGrade(double grade)
     if (grade >= 0.0 && grade <= 5.0)
         grades.push_back(grade);
 }
-
 double Student::calculateAverage() const
 {
     if (grades.empty())
@@ -42,17 +52,14 @@ double Student::calculateAverage() const
 
     for (double g : grades)
         sum += g;
-
     return sum / grades.size();
 }
-
 void Student::print() const
 {
     std::cout << "Студент: " << name << "\nОценки: ";
 
     for (double g : grades)
         std::cout << g << " ";
-
     std::cout << "\nСредний балл: "
               << calculateAverage()
               << "\n\n";
@@ -60,16 +67,33 @@ void Student::print() const
 
 
 
-Teacher
+Student.hpp
+
+
+#pragma once
+#include "Person.hpp"
+#include <vector>
+class Student : public Person
+{
+private:
+    std::vector<double> grades;
+public:
+    explicit Student(const std::string& name);
+    void addGrade(double grade);
+    double calculateAverage() const;
+    void print() const override;
+};
+
+
+
+Teacher.cpp
 
 #include "Teacher.hpp"
-
 Teacher::Teacher(const std::string& name,
                  const std::string& subject)
     : Person(name), subject(subject)
 {
 }
-
 void Teacher::print() const
 {
     std::cout << "Преподаватель: "
@@ -79,42 +103,46 @@ void Teacher::print() const
               << "\n\n";
 }
 
+Teacher.hpp
+
+
+#pragma once
+#include "Person.hpp"
+class Teacher : public Person
+{
+private:
+    std::string subject;
+public:
+    Teacher(const std::string& name,
+            const std::string& subject);
+    void print() const override;
+};
 
 
 
 
-
-main
+main.cpp
 
 
 #include <vector>
 #include "Student.hpp"
 #include "Teacher.hpp"
-
 int main()
 {
     Student* s1 = new Student("Иванов");
     Student* s2 = new Student("Петров");
-
     s1->addGrade(4.78);
     s1->addGrade(5.0);
-
     s2->addGrade(3.67);
     s2->addGrade(3.75);
-
     Teacher* t1 = new Teacher("Роднина", "Математика");
-
     std::vector<Person*> people;
-
     people.push_back(s1);
     people.push_back(s2);
     people.push_back(t1);
-
     for (const auto& person : people)
         person->print();
-
     for (auto person : people)
         delete person;
-
     return 0;
 }
