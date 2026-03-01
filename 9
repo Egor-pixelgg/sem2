@@ -1,0 +1,116 @@
+group.hpp
+
+
+#pragma once
+#include <string>
+#include <vector>
+#include "Student.hpp"
+class Group {
+private:
+    std::string groupName;
+    std::vector<Student*> students;
+public:
+    Group(const std::string& groupName, const std::vector<Student*>& students) : groupName(groupName), students(students) {}
+    void addStudent(Student* student) {
+        students.push_back(student);
+    }
+    void removeStudent(int bookNumber) {
+        int initialSize = students.size();
+        students.erase(std::remove_if(students.begin(), students.end(), [bookNumber](const Student* student){return student->getBookNumber() == bookNumber;}), students.end());
+        int eventualSize = students.size();
+        if (initialSize == eventualSize) std::cout << "Никого не удалили, видимо студента с такой зачеткой не существует" << std::endl;
+    }
+    double groupMean() const {
+        int size = students.size();
+        if (size == 0) return 0;
+        double sum = 0;
+        for (const Student* student : students) sum += student->mean();
+        return sum / size;
+    }
+};
+
+
+Percon.hpp
+
+#pragma once
+#include <string>
+class Person {
+protected:
+    std::string name;
+public:
+    explicit Person(const std::string& name): name(name) {}
+    virtual ~Person() {}
+    virtual void print() const = 0;
+    std::string getName() const {
+        return name;
+    }
+};
+
+
+RecordBook.hpp
+
+
+#pragma once
+#include <vector>
+class RecordBook {
+private:   
+    int bookNumber;
+    std::vector<double> grades;
+public:
+    RecordBook(int bookNumber) : bookNumber(bookNumber), grades({}) {}
+    RecordBook(int bookNumber, const std::vector<double>& grades) : bookNumber(bookNumber), grades(grades) {}
+    double mean() const {
+        int N = grades.size();
+        if (N == 0) return 0;
+        double sum = 0;
+        for (auto grade : grades) sum += grade;
+        return sum / N;
+    }
+    int getBookNumber() const {
+        return bookNumber;
+    }
+    std::vector<double> getGrades() const {
+        return grades;
+    }
+    void setGrades(const std::vector<double>& newGrades) {
+        grades = newGrades;
+    } 
+};
+
+
+
+Student.hpp
+
+
+
+#pragma once
+#include <iostream>
+#include <vector>
+#include "Person.hpp"
+#include "RecordBook.hpp"
+class Student : public Person {
+private:
+    RecordBook recordBook;
+public:
+    Student(const std::string& name, int bookNumber): Person(name), recordBook(bookNumber) {}
+    Student(const std::string& name, int bookNumber, const std::vector<double>& grades): Person(name), recordBook(bookNumber, grades) {}
+    std::vector<double> getGrades() const {
+        return recordBook.getGrades();
+    }
+    int getBookNumber() const {
+        return recordBook.getBookNumber();
+    }
+    double mean() const {
+        return recordBook.mean();
+    }
+    void addGrade(double grade) {
+        std::vector<double> grades = getGrades();
+        grades.push_back(grade);
+        recordBook.setGrades(grades);
+    }
+    void print() const override {
+        std::cout << "У студента по имени " << name << " следующие оценки:";
+        for (double grade : getGrades()) std::cout << " " << grade;
+        std::cout << std::endl;
+    }
+};
