@@ -1,0 +1,334 @@
+FileManager.cpp
+
+
+#include "FileManager.hpp"
+#include <fstream>
+#include <cstring>
+#pragma pack(push,1)
+struct Header
+{
+    char signature[4];
+    int studentCount;
+};
+#pragma pack(pop)
+void FileManager::save(const Group& group,
+    const std::string& filename)
+{
+    std::ofstream out(filename, std::ios::binary);
+    Header header = { {'A','B','C','1'},
+                      static_cast<int>(group.getStudents().size()) };
+    out.write(reinterpret_cast<char*>(&header),
+        sizeof(header));
+    for (const auto& s : group.getStudents())
+    {
+        std::string name = s->getName();
+        const RecordBook& rb = s->getRecordBook();
+        size_t nameSize = name.size();
+        size_t recordSize = rb.getRecordNumber().size();
+        size_t gradeCount = rb.getGrades().size();
+        out.write(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
+        out.write(name.c_str(), nameSize);
+        out.write(reinterpret_cast<char*>(&recordSize), sizeof(recordSize));
+        out.write(rb.getRecordNumber().c_str(), recordSize);
+        out.write(reinterpret_cast<char*>(&gradeCount), sizeof(gradeCount));
+        out.write(reinterpret_cast<const char*>(rb.getGrades().data()),
+            gradeCount * sizeof(double));
+    }
+    out.close();
+}
+
+
+
+FileManager.hpp
+
+
+#pragma once
+#include <string>
+#include "Group.hpp"
+class FileManager
+{
+public:
+    static void save(const Group& group,
+        const std::string& filename);
+    static void load(Group& group,
+        const std::string& filename);
+};
+
+
+
+Group.cpp
+
+#include "Group.hpp"
+#include <algorithm>
+#include <iostream>
+Group::Group(const std::string& name)
+    : groupName(name)
+{
+}
+void Group::addStudent(Student* student)
+{
+    students.push_back(student);
+}
+void Group::removeStudent(const std::string& name)
+{
+    students.erase(
+        std::remove_if(students.begin(), students.end(),
+            [&name](Student* s)
+            {
+                return s->getName() == name;
+            }),
+        students.end());
+}
+void Group::printAll() const
+{
+    std::cout << "Ãðóïïà: " << groupName << std::endl;
+    for (const auto& s : students)
+        s->print();
+}
+double Group::calculateAverage() const
+{
+    if (students.empty())
+        return 0
+    double sum = 0;
+    for (const auto& s : students)
+        sum += s->calculateAverage();
+    return sum / students.size();
+}
+const std::vector<Student*>& Group::getStudents() const
+{
+    return students;
+}
+std::string Group::getName() const
+{
+    return groupName;
+}
+
+
+
+Group.hpp
+
+#pragma once
+#include <vector>
+#include <string>
+#include "Student.hpp"
+class Group
+{
+private:
+    std::string groupName;
+    std::vector<Student*> students;
+public:
+    explicit Group(const std::string& name);
+    void addStudent(Student* student);
+    void removeStudent(const std::string& name);
+    void printAll() const;
+    double calculateAverage() const;
+    const std::vector<Student*>& getStudents() const;
+    std::string getName() const;
+};
+
+
+
+Person.cpp
+
+#include "Person.hpp"
+#include <iostream>
+Person::Person(const std::string& name)
+    : name(name)
+{
+}
+Person::~Person() {}
+void Person::print() const
+{
+    std::cout << "Èìÿ: " << name << std::endl;
+}
+std::string Person::getName() const
+{
+    return name;
+}
+
+
+
+
+Person.hpp
+
+#pragma once
+#include <string>
+class Person
+{
+protected:
+    std::string name;
+public:
+    explicit Person(const std::string& name);
+    virtual ~Person();
+    virtual void print() const;
+    std::string getName() const;
+};
+
+
+
+RecordBook.cpp
+
+
+#include "RecordBook.hpp"
+RecordBook::RecordBook(const std::string& recordNumber)
+    : recordNumber(recordNumber)
+{
+}
+void RecordBook::addGrade(double grade)
+{
+    if (grade >= 0.0 && grade <= 5.0)
+        grades.push_back(grade);
+}
+double RecordBook::calculateAverage() const
+{
+    if (grades.empty())
+        return 0.0;
+    double sum = 0.0;
+    for (double g : grades)
+        sum += g;
+    return sum / grades.size();
+}
+const std::vector<double>& RecordBook::getGrades() const
+{
+    return grades;
+}
+std::string RecordBook::getRecordNumber() const
+{
+    return recordNumber;
+}
+
+
+
+RecordBook.hpp
+
+#pragma once
+#include <vector>
+#include <string>
+class RecordBook
+{
+private:
+    std::string recordNumber;
+    std::vector<double> grades;
+public:
+    explicit RecordBook(const std::string& recordNumber);
+    void addGrade(double grade);
+    double calculateAverage() const;
+    const std::vector<double>& getGrades() const;
+    std::string getRecordNumber() const;
+};
+
+
+
+
+Student.cpp
+
+#include "Student.hpp"
+#include <iostream>
+Student::Student(const std::string& name,
+    const std::string& recordNumber)
+    : Person(name),
+    recordBook(recordNumber)
+{
+}
+void Student::addGrade(double grade)
+{
+    recordBook.addGrade(grade);
+}
+double Student::calculateAverage() const
+{
+    return recordBook.calculateAverage();
+}
+void Student::print() const
+{
+    std::cout << "Ñòóäåíò: " << name
+        << " | Ñðåäíèé áàëë: "
+        << calculateAverage()
+        << std::endl;
+}
+const RecordBook& Student::getRecordBook() const
+{
+    return recordBook;
+}
+
+
+
+Student.hpp
+
+#pragma once
+#include "Person.hpp"
+#include "RecordBook.hpp"
+class Student : public Person
+{
+private:
+    RecordBook recordBook;
+public:
+    Student(const std::string& name,
+        const std::string& recordNumber);
+    void addGrade(double grade);
+    double calculateAverage() const;
+    void print() const override;
+    const RecordBook& getRecordBook() const;
+};
+
+
+
+
+Teacher.cpp
+
+#include "Teacher.hpp"
+#include <iostream>
+Teacher::Teacher(const std::string& name,
+    const std::string& subject)
+    : Person(name), subject(subject)
+{
+}
+void Teacher::print() const
+{
+    std::cout << "Ïðåïîäàâàòåëü: "
+        << name
+        << " | Äèñöèïëèíà: "
+        << subject << std::endl;
+}
+
+
+
+Teacher.hpp
+
+#pragma once
+#include "Person.hpp"
+class Teacher : public Person
+{
+private:
+    std::string subject;
+public:
+    Teacher(const std::string& name,
+        const std::string& subject);
+    void print() const override;
+};
+
+
+
+main.cpp
+
+﻿#include "iostream"
+#include "Group.hpp"
+#include "Teacher.hpp"
+#include "FileManager.hpp"
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    Student* s1 = new Student("Сидоров", "77У777");
+    Student* s2 = new Student("Козлов", "99У999");
+    s1->addGrade(5);
+    s1->addGrade(4.67);
+    s2->addGrade(3.15);
+    s2->addGrade(3.89);
+    Group group("ИУ1-41Б");
+    group.addStudent(s1);
+    group.addStudent(s2);
+    group.printAll();
+    FileManager::save(group, "group.bin");
+    delete s1;
+    delete s2;
+    return 0;
+}
