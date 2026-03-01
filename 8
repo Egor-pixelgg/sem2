@@ -1,4 +1,4 @@
-Person
+Person.hpp
 
 #pragma once
 #include <string>
@@ -15,7 +15,7 @@ public:
 
 
 
-RecordBook
+RecordBook.cpp
 
 
 #include "RecordBook.hpp"
@@ -48,28 +48,46 @@ std::string RecordBook::getRecordNumber() const
 }
 
 
-Student
+RecordBook.hpp
+
+#pragma once
+#include <vector>
+#include <string>
+#include <iostream>
+class RecordBook
+{
+private:
+    std::string recordNumber;
+    std::vector<double> grades;
+public:
+    explicit RecordBook(const std::string& recordNumber);
+    void addGrade(double grade);
+    double calculateAverage() const;
+    void printGrades() const;
+    std::string getRecordNumber() const;
+};
+
+
+
+
+Student.cpp
 
 
 #include "Student.hpp"
-
 Student::Student(const std::string& name,
                  const std::string& recordNumber)
     : Person(name),
       recordBook(recordNumber)
 {
 }
-
 void Student::addGrade(double grade)
 {
     recordBook.addGrade(grade);
 }
-
 double Student::calculateAverage() const
 {
     return recordBook.calculateAverage();
 }
-
 void Student::print() const
 {
     std::cout << "Студент: " << name << "\n";
@@ -83,8 +101,27 @@ void Student::print() const
 }
 
 
+Student.hpp
 
-Teacher
+#pragma once
+#include "Person.hpp"
+#include "RecordBook.hpp"
+class Student : public Person
+{
+private:
+    RecordBook recordBook;
+public:
+    Student(const std::string& name,
+            const std::string& recordNumber);
+    void addGrade(double grade);
+    double calculateAverage() const;
+    void print() const override;
+};
+
+
+
+
+Teacher.hpp
 
 
 #pragma once
@@ -101,7 +138,7 @@ public:
 
 
 
-main
+main.cpp
 
 
 #include <vector>
