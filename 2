@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+void fillGrades(vector<vector<double>>& gradeMatrix, int students, int subjects)
+{
+    for (int studentIdx = 0; studentIdx < students; ++studentIdx)
+    {
+        cout << "\n--- Студент №" << studentIdx + 1 << " ---\n";
+        for (int subjectIdx = 0; subjectIdx < subjects; ++subjectIdx)
+        {
+            double currentGrade;
+            while (true)
+            {
+                cout << "Предмет " << subjectIdx + 1 << " (оценка 0-5): ";
+                cin >> currentGrade;
+
+                if (currentGrade >= 0.0 && currentGrade <= 5.0)
+                {
+                    gradeMatrix[studentIdx][subjectIdx] = currentGrade;
+                    break;
+                }
+                else
+                {
+                    cout << "Ошибка! Оценка должна быть от 0 до 5.\n";
+                }
+            }
+        }
+    }
+}
+
+double computeStudentAverage(const vector<double>& grades)
+{
+    double total = 0.0;
+    for (double grade : grades)
+        total += grade;
+
+    return total / grades.size();
+}
+
+vector<double> computeAllAverages(const vector<vector<double>>& gradeMatrix)
+{
+    vector<double> averages;
+    averages.reserve(gradeMatrix.size());
+
+    for (const auto& studentGrades : gradeMatrix)
+        averages.push_back(computeStudentAverage(studentGrades));
+
+    return averages;
+}
+
+vector<double> computeSubjectAverages(const vector<vector<double>>& gradeMatrix, int subjects)
+{
+    vector<double> averages(subjects, 0.0);
+
+    for (int subject = 0; subject < subjects; ++subject)
+    {
+        double sum = 0.0;
+        for (size_t student = 0; student < gradeMatrix.size(); ++student)
+            sum += gradeMatrix[student][subject];
+
+        averages[subject] = sum / gradeMatrix.size();
+    }
+
+    return averages;
+}
+
+int findTopStudent(const vector<double>& averages)
+{
+    int topIndex = 0;
+
+    for (size_t i = 1; i < averages.size(); ++i)
+        if (averages[i] > averages[topIndex])
+            topIndex = i;
+
+    return topIndex;
+}
+
+int main()
+{
+    int studentCount, subjectCount;
+
+    cout << "Количество студентов: ";
+    cin >> studentCount;
+
+    cout << "Количество предметов: ";
+    cin >> subjectCount;
+
+    if (studentCount <= 0 || subjectCount <= 0)
+    {
+        cout << "Ошибка! Количество студентов и предметов должно быть положительным.\n";
+        return 1;
+    }
+
+    vector<vector<double>> grades(studentCount, vector<double>(subjectCount));
+
+    fillGrades(grades, studentCount, subjectCount);
+
+    const vector<double> studentResults = computeAllAverages(grades);
+    const vector<double> subjectResults = computeSubjectAverages(grades, subjectCount);
+
+    cout << "\n========== РЕЗУЛЬТАТЫ ==========\n";
+    cout << "\nСредние баллы по студентам:\n";
+    for (size_t i = 0; i < studentResults.size(); ++i)
+        cout << "Студент " << i + 1 << ": " << studentResults[i] << endl;
+
+    cout << "\nСредние баллы по предметам:\n";
+    for (size_t j = 0; j < subjectResults.size(); ++j)
+        cout << "Предмет " << j + 1 << ": " << subjectResults[j] << endl;
+
+    const int bestStudentIndex = findTopStudent(studentResults);
+    cout << "\nЛучший студент: №" << bestStudentIndex + 1
+         << " (средний балл: " << studentResults[bestStudentIndex] << ")\n";
+
+    return 0;
+}
