@@ -1,0 +1,104 @@
+#include <iostream>
+
+using namespace std;
+
+void fillGrades(double* array, int studentsCount)
+{
+    for (int i = 0; i < studentsCount; i++)
+    {
+        double grade;
+        while (true)
+        {
+            cout << "Средний балл студента #" << i + 1 << " (от 0 до 5): ";
+            cin >> grade;
+
+            if (grade >= 0.0 && grade <= 5.0)
+            {
+                array[i] = grade;
+                break;
+            }
+            else
+            {
+                cout << "Неверный ввод. Балл должен быть от 0 до 5.\n";
+            }
+        }
+    }
+}
+
+double calculateAverage(const double* data, int length)
+{
+    double total = 0.0;
+    for (int i = 0; i < length; ++i)
+        total += data[i];
+
+    return total / length;
+}
+
+double findMaximum(const double* data, int length)
+{
+    double maximum = data[0];
+    for (int i = 1; i < length; ++i)
+        if (data[i] > maximum)
+            maximum = data[i];
+
+    return maximum;
+}
+
+double findMinimum(const double* data, int length)
+{
+    double minimum = data[0];
+    for (int i = 1; i < length; ++i)
+        if (data[i] < minimum)
+            minimum = data[i];
+
+    return minimum;
+}
+
+int countAboveThreshold(const double* data, int length, double limit)
+{
+    int counter = 0;
+    for (int i = 0; i < length; ++i)
+        if (data[i] > limit)
+            counter++;
+            
+    return counter;
+}
+
+int main()
+{
+    int numberOfStudents;
+
+    cout << "Укажите количество студентов: ";
+    cin >> numberOfStudents;
+
+    if (numberOfStudents <= 0)
+    {
+        cout << "Ошибка! Количество студентов должно быть положительным.\n";
+        return 1;
+    }
+
+    double* studentGrades = new double[numberOfStudents];
+
+    fillGrades(studentGrades, numberOfStudents);
+
+    cout << "\n=== РЕЗУЛЬТАТЫ ===\n";
+    cout << "Среднее арифметическое: " 
+         << calculateAverage(studentGrades, numberOfStudents) << endl;
+
+    cout << "Максимальная оценка: " 
+         << findMaximum(studentGrades, numberOfStudents) << endl;
+
+    cout << "Минимальная оценка: " 
+         << findMinimum(studentGrades, numberOfStudents) << endl;
+
+    double thresholdValue;
+    cout << "\nВведите пороговое значение: ";
+    cin >> thresholdValue;
+
+    cout << "Студентов с баллом выше " << thresholdValue << ": "
+         << countAboveThreshold(studentGrades, numberOfStudents, thresholdValue) << endl;
+
+    delete[] studentGrades;
+
+    return 0;
+}
